@@ -14,7 +14,7 @@ all: build install
 build: $(APP)
 
 $(APP): $(APP_OBJS)
-	$(CC) $(LDFLAGS) -o $@ $(APP_OBJS) $(LDLIBS)
+	$(CC) $(LDFLAGS) -l pthread -o $@ $(APP_OBJS) $(LDLIBS)
 
 clean:
 	-rm -f $(APP) *.elf *.gdb *.o
@@ -22,6 +22,10 @@ clean:
 .PHONY: install image
 
 install: $(APP)
+#added for auto-startup
+#	$(TARGETINST) -d -p 0755 mystartup /etc/init.d/mystartup
+#	$(TARGETINST) -s /etc/init.d/mystartup /etc/rc5.d/S99mystartup
+
 	$(TARGETINST) -d $(APP) /bin/$(APP)
 
 %.o: %.c
