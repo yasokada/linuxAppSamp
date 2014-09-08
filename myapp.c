@@ -96,7 +96,7 @@ static int gpio_get_value(int gpio)
 	}
 }
 
-int main()
+int main(void)
 {
 	int ret;
 	char buf[MAX_BUF];
@@ -115,14 +115,17 @@ int main()
 	}
 
 	while(1) {
+		printf(".");
+		fflush(stdout);
+
 		ret = gpio_get_value(IN_GPIO);
-		printf("in:%d\n", ret);
 		if (ret > 0) {
 			gpio_set_value(OUT_GPIO, 1);
 		} else {
 			gpio_set_value(OUT_GPIO, 0);			
 		}
-		sleep(1);
+//		sleep(1);
+		usleep(300000); // 300 msec
 	}
 
 }
