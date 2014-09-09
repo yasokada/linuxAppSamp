@@ -14,7 +14,7 @@
 
 #define RET_OK (0)
 
-static char *kVersion = "V0.1";
+static char *kVersion = "V0.2";
 
 typedef enum {
 	DIR_IN = 0,
@@ -98,51 +98,91 @@ static bool gpio_get_hiLow(int gpio)
 	}
 }
 
+//-----------------------------------
+static bool s_bfStart = false;
+//-----------------------------------
+
 void *ledTask(void *ptr)
 {
-	int ret;
-	char buf[MAX_BUF];
-	bool hist[2] = { false, false };
-	bool now;
-
 	printf("ledTask started\n");
 
-	if (gpio_export(OUT_GPIO) != RET_OK || gpio_export(IN_GPIO) != RET_OK) {
-		printf("gpio not found\n");
+	if (gpio_export(OUT_GPIO) != RET_OK) {
+		printf("ledTask > gpio not found\n");
 		return;
 	}
-	if (gpio_set_direction(OUT_GPIO, DIR_OUT) != RET_OK || 
-		gpio_set_direction(IN_GPIO, DIR_IN) != RET_OK) {
-		printf("gpio dir set fail\n");
+	if (gpio_set_direction(OUT_GPIO, DIR_OUT) != RET_OK) {
+		printf("ledTask > gpio dir set fail\n");
 		return;
 	}
 
 	while(1) {
-		printf(".");
-		fflush(stdout);
-
-		now = gpio_get_hiLow(IN_GPIO);
-		if (now) {
+	    if (s_bfStart) { 
 			gpio_set_value(OUT_GPIO, 1);
 		} else {
-			gpio_set_value(OUT_GPIO, 0);			
+			gpio_set_value(OUT_GPIO, 0);
 		}
-//		sleep(1);
-		usleep(300000); // 300 msec
+		usleep(100000);
 	}
+}
+
+void *swTask(void *ptr)
+{
+	int ret;
+	char buf[MAX_BUF];
+	bool hist[3] = { false, false, false }; // old..new
+	bool now;
+	int pos = 0;
+
+	printf("swTask started\n");
+
+	if (gpio_export(IN_GPIO) != RET_OK) {
+		printf("swTask > gpio not found\n");
+		return;
+	}
+	if (gpio_set_direction(IN_GPIO, DIR_IN) != RET_OK) {
+		printf("swTask > gpio dir set fail\n");
+		return;
+	}
+
+	while(1) {
+		usleep(20000); // 20 msec
+
+//		printf(".");
+//		fflush(stdout);
+
+		now = gpio_get_hiLow(IN_GPIO);
+		if (pos < 3) {
+			hist[0] = hist[1];
+			hist[1] = hist[2];
+			hist[2] = now;
+			pos++;
+			continue;
+		}
+
+		if ( (! hist[0] && ! hist[1] && hist[2] && now) ) {
+		    s_bfStart = !s_bfStart;
+		}
+		hist[0] = hist[1];
+		hist[1] = hist[2];
+		hist[2] = now;
+	}
+
+	// TODO: unexport
 
 }
 
 int main(void)
 {
-	pthread_t ledThread;
-	int retLed;
+	pthread_t swThread, ledThread;
+	int retSw, retLed;
 
 	printf("----------------------\n");
 	printf("Hello world %s\n", kVersion);
 
+	retSw  = pthread_create( &swThread, NULL, swTask, NULL);
 	retLed = pthread_create( &ledThread, NULL, ledTask, NULL);
 
+	pthread_join( swThread, NULL );
 	pthread_join( ledThread, NULL );
 	exit(0);
 }
