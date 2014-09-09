@@ -2,8 +2,11 @@
 #include <time.h>
 
 int main(void){
-	time_t t = time(NULL);
-	struct tm tm = *localtime(&t);
+	time_t t;
+	struct tm tm;
+
+	t = time(NULL);
+	tm = *localtime(&t);
 
 	printf("Hellow World\n");
 	printf("now: %d-%d-%d %d:%d:%d\n",
