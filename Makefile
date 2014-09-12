@@ -14,7 +14,7 @@ all: build install
 build: $(APP)
 
 $(APP): $(APP_OBJS)
-	$(CC) $(LDFLAGS) -l pthread -o $@ $(APP_OBJS) $(LDLIBS)
+	$(CC) $(LDFLAGS) -lpthread -lrt -o $@ $(APP_OBJS) $(LDLIBS)
 
 clean:
 	-rm -f $(APP) *.elf *.gdb *.o
