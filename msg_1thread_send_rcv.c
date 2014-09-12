@@ -81,7 +81,7 @@ void *recv_func(void *ptr)
 		}
 
 		msgrcv(mqid, p, sizeof(p->m_data), 0, 0);
-		printf("recv %d %s in %d msgs\n", p->m_type, p->m_data);
+		printf("recv %d %s\n", p->m_type, p->m_data);
 		usleep(500000);
 	}
 
