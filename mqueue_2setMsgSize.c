@@ -3,6 +3,7 @@
 	#include <sys/stat.h>
 	#include <stdlib.h> // for EXIT_FAILURE
 	#include <string.h>
+    #include <errno.h>
 
 	/*
 	gcc [file] -lrt
@@ -29,19 +30,21 @@
 
 		flags = O_RDWR | O_CREAT;
 
-		attr.mq_flags = 0; // or O_NONBLOCK
-		attr.mq_maxmsg = 60;
-		attr.mq_msgsize = 120;
+		mq_unlink("/mq");
+
+		// mq_maxmsg should be less than and equal to the value defined
+		// in /proc/sys/fs/mqueue/msg_max
+		attr.mq_flags = 0;
+		attr.mq_maxmsg = 8;
+		attr.mq_msgsize = 1024;
 		attr.mq_curmsgs = 0;
 
-		// POSIX IPC name should start with "/"
 		mqd = mq_open("/mq", flags,
-	//		(S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH),
-			0644,
+			(S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH),
 			&attr );
 
 		if (mqd < 0) {
-			printf("open failed\n");
+			printf("open failed %d\n", mqd);
 			exit(EXIT_FAILURE);
 		}
 		printf("open ok\n");
@@ -49,6 +52,7 @@
 		sleep(1);
 
 		showAttr(mqd);
+
 
 		ret = mq_close(mqd);
 		if (ret != 0) {
