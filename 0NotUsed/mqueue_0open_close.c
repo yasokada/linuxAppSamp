@@ -7,7 +7,13 @@
 gcc [file] -lrt
 */
 
-int main()
+/* 
+To use POSIX message queue, followings should be activated
+- CONFIG_POSIX_MQUEUE = y
+- CONFIG_POSIX_MQUEUE_SYSCTL = y
+*/
+
+int main(int argc, char *argv[])
 {
 	mqd_t mqd;
 	int flags;
@@ -16,10 +22,12 @@ int main()
 	flags = O_RDWR | O_CREAT;
 
 	// POSIX IPC name should start with "/"
+	// 
+	// without NULL, mq_open() fails on PetaLinux
 	mqd = mq_open("/mq", flags,
-		(S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) );
+		(S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH), NULL );
 	if (mqd < 0) {
-		printf("open failed\n");
+		printf("open failed %d\n", mqd);
 		exit(EXIT_FAILURE);
 	}
 	printf("open ok\n");
