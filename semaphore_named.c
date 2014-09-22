@@ -2,14 +2,11 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <pthread.h>
+#include <stdlib.h> // to avoid warning: incompatible implicit declaration...
 #include <semaphore.h>
 
 int g_cnt = 0;
 sem_t *g_psem;
-
-/*
-TODO: two warnings related to (void*)
-*/
 
 void *testFunc(void *arg)
 {

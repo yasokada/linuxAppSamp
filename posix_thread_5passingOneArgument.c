@@ -2,10 +2,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <pthread.h>
-
-/*
-TODO: two warnings related to (void*)
-*/
+#include <stdlib.h> // to avoid warning: incompatible implicit declaration...
 
 void *testFunc(void *arg)
 {
