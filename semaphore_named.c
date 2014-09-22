@@ -20,6 +20,7 @@ void *testFunc(void *arg)
 		g_cnt++;
 		printf("g_cnt : %d > %d\n", thr_idx, g_cnt);
 		sem_post(g_psem); /***semaphore***/
+		usleep(100000);
 	}
 
 	free(arg);
