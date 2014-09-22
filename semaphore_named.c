@@ -7,40 +7,54 @@
 int g_cnt = 0;
 sem_t *g_psem;
 
+/*
+TODO: two warnings related to (void*)
+*/
+
 void *testFunc(void *arg)
 {
 	int loop;
+	int thr_idx;
 
-	for(loop=0; loop<1000; loop++) {
-		sem_wait(g_psem); /***/
+	thr_idx = *(int*)arg;
+
+	for(loop=0; loop<5; loop++) {
+		sem_wait(g_psem); /***semaphore***/
 		g_cnt++;
-		printf("g_cnt : %d\r", g_cnt);
-		sem_post(g_psem); /***/
+		printf("g_cnt : %d > %d\n", thr_idx, g_cnt);
+		sem_post(g_psem); /***semaphore***/
 	}
+
+	free(arg);
 	return NULL;
 }
 
 const char *kSemName = "/sem";
-const int kNum = 100;
+const int kNum = 10;
 
 int main(void)
 {
 	int loop;
 	pthread_t thr[kNum];
+	int *pint; // for passing argument
+
+	sem_unlink(kSemName); // just in case
 
 	g_psem = sem_open(kSemName, O_CREAT, 
-		(S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH), 1); /***/
+		(S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH), 1); /***semaphore***/
 
 	for(loop=0; loop<kNum; loop++) {
-		pthread_create(&thr[loop], NULL, testFunc, NULL);
+		pint = malloc(sizeof(*pint));
+		*pint = loop;
+		pthread_create(&thr[loop], NULL, testFunc, pint);
 	}
 	for(loop=0; loop<kNum; loop++) {
 		pthread_join(thr[loop], NULL);
 	}
 	printf("\n");
 
-	sem_close(g_psem); /***/
-	sem_unlink(kSemName); /***/
+	sem_close(g_psem); /***semaphore***/
+	sem_unlink(kSemName); /***semaphore***/
 
 	return 0;
 }
