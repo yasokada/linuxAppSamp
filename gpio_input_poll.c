@@ -134,7 +134,7 @@ int main(void)
 	fd_set exceptfds;
 	int len;
 	struct pollfd pfd;
-	int val;
+	char code;
 	int count = 0;
 
 	printf("----------------------\n");
@@ -153,7 +153,7 @@ int main(void)
 
 	// example of poll()
 	fd = open("/sys/class/gpio/gpio51/value", O_RDONLY);
-	read(fd, &val, 1); // need this to make poll() work
+	read(fd, &code, 1); // need this to make poll() work
 
 	pfd.fd = fd;
 	pfd.events = POLLPRI | POLLERR;   /* should not add POLLIN here */
@@ -162,8 +162,8 @@ int main(void)
 	while(1) {
 		ret = poll(&pfd, 1, -1);
 		lseek(fd, 0, SEEK_SET);
-		read(fd, &val, 1);
-		if (val > 0) {
+		read(fd, &code, 1);
+		if (code == '1') {
 			printf("pushed\n");
 			count++;
 			if (count >= 3) {
