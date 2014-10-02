@@ -29,11 +29,11 @@ int main(void)
 		signal(SIGHUP, funcHup);
 
 		while(g_fin == 0) {
-			sleep(1);
+			usleep(100000);
 		}
 		printf("child > end\n");
 	} else { // parent
-		sleep(1);
+		sleep(1); // wait for child process to signal()
 		for(loop=0; loop<3; loop++) {
 			kill(pid, SIGINT);
 			sleep(1);
