@@ -37,15 +37,15 @@ int main(void)
 	pid = fork(); /***/
 	printf("after fork\n");
 
-	if (pid == (pid_t) 0) { // parent
+	if (pid == (pid_t) 0) { // child
 		close(fds[1]);
 		stream = fdopen(fds[0], "r");
 		funcRead(stream);
 		close(fds[0]);
-	} else { // child
+	} else { // parent
 		close(fds[0]);
 		stream = fdopen(fds[1], "w");
-		funcWrite("message from child", 3, stream);
+		funcWrite("message from parent", 3, stream);
 		close(fds[1]);
 	}
 
