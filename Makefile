@@ -9,9 +9,9 @@ APP = myapp
 # Add any other object files to this list below
 APP_OBJS = myapp.o
 
-# 141007 added to avoid optimization
-# http://tidsreise.com/div/Xilinx_undervisning/embedded_linux_xupv5_lab_manual.pdf
-CFLAGS += -O0
+## 141007 added to avoid optimization
+## http://tidsreise.com/div/Xilinx_undervisning/embedded_linux_xupv5_lab_manual.pdf
+#CFLAGS += -O0
 
 all: build install
 
