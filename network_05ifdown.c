@@ -6,6 +6,10 @@
 #include <string.h> // for strncpy
 #include <stdlib.h> // for EXIT_FAILURE
 
+/*
+Disables interface eth0 (set to down)
+*/
+
 int main(void)
 {
 	int sockfd;
