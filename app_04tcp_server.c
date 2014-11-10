@@ -11,7 +11,7 @@
 int main(void) {
     int ret;
     int rcvdLen;
-    char szBuf[SIZE_BUF];
+    char rcvBuf[SIZE_BUF];
     unsigned short port = 9880;
     int srcSocket;
     int destSocket;
@@ -35,11 +35,23 @@ int main(void) {
     printf("after accept %s\n", inet_ntoa(dstAddr.sin_addr));
 
     while(1) {
-        rcvdLen = recv(destSocket, szBuf, SIZE_BUF, 0);
+        rcvdLen = recv(destSocket, rcvBuf, SIZE_BUF, 0);
         if (rcvdLen == 0 || rcvdLen == -1) {
             ret = close(destSocket);
             break;
         }
-        printf("rx: %s\n", szBuf);
+        if (strstr(rcvBuf, "req") == NULL) {
+            continue;
+        }
+        // remove <LF>
+        if (rcvBuf[rcvdLen - 2] == '\n') {
+            rcvBuf[rcvdLen - 2] = 0x00;
+        }
+
+        strcat(rcvBuf, ",OK\n");
+
+        send(destSocket, rcvBuf, strlen(rcvBuf)+1, 0);
+
+        printf("rx: %s", rcvBuf);
     }
 }
