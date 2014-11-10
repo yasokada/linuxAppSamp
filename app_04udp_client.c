@@ -6,13 +6,17 @@
 #include <netdb.h>
 #include <string.h> // for memset()
 
+#define SIZE_BUF 200
+
 int main(int argc, char **argv) {
     int loop;
     char destIP[80];
     unsigned short port = 9880;
     int destSocket;
     struct sockaddr_in destAddr;
-    char *toSendText = "test message";
+    char toSendText[80];
+    int rcvdLen;
+    char szBuf[200];
 
     if (argc < 2) {
         printf("[cmd] [dest IP addr]\n");
@@ -32,9 +36,18 @@ int main(int argc, char **argv) {
 
     for(loop=0; loop<3; loop++) {
         sprintf(toSendText, "req\n");
-        printf("tx:%s\n", toSendText);
+        printf("tx:%s", toSendText);
         sendto( destSocket, toSendText, strlen(toSendText)+1, 0, 
             (struct sockaddr *)&destAddr, sizeof(destAddr) );
+        rcvdLen = recvfrom(destSocket, szBuf, SIZE_BUF, 0, NULL, NULL);
+        if (rcvdLen != -1) {
+            // remove <LF>
+            if (szBuf[rcvdLen - 2] == '\n') {
+                szBuf[rcvdLen - 2] = 0x00;
+            }
+            printf("rx:%s\n", szBuf);
+        }
+        printf("---\n");
         sleep(1);
     }
 

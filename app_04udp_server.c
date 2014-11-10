@@ -39,9 +39,14 @@ int main(void)
         }
         printf("rx: %s", rcvBuf);
 
-        // TODO: remove <LF>
+        // remove <LF>
+        if (rcvBuf[rcvdLen - 2] == '\n') {
+            rcvBuf[rcvdLen - 2] = 0x00;
+        }
+        strcat(rcvBuf, ",OK\n");
 
-        ret = sendto(sockfd, rcvBuf, rcvdLen, 0, (struct sockaddr*) &rcvAddr, slen);         
+        ret = sendto(sockfd, rcvBuf, strlen(rcvBuf)+1, 0, 
+            (struct sockaddr*) &rcvAddr, slen);         
         if (ret == -1) {
             close(sockfd);
             exit(EXIT_FAILURE);

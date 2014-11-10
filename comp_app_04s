@@ -1,1 +1,2 @@
 gcc app_04udp_server.c -o udpServer
+gcc app_04udp_client.c -o udpClient
