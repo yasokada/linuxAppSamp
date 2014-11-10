@@ -1,0 +1,2 @@
+gcc app_04tcp_server.c -o tcpServer
+gcc app_04tcp_client.c -o tcpClient
