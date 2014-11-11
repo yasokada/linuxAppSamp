@@ -1,0 +1,2 @@
+gcc app_05tcp_trans1MB_server.c -o tcpServer
+gcc app_05tcp_trans1MB_client.c -o tcpClient
