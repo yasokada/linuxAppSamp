@@ -5,6 +5,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <string.h> // for memset()
+#include <stdbool.h>
 #include "app_05common.h"
 
 #define SIZE_RCV_BUF 200 // for short length texts
@@ -38,23 +39,28 @@ static void setLargeData(void)
     }
 }
 
-static void sendOnePacket(int destSocket, char *pData, int startPos, int size)
+static void sendOnePacket(int destSocket, char *pData, int start, int size, bool sendEOF)
 {
     unsigned char posA, posB;
+    char dispBuf[20 + 1];
 
-    if (size < SIZE_ONE_PACKET) {
+    if (size < SIZE_ONE_PACKET || sendEOF) {
         posA = size / 256;
         posB = size % 256; // TODO: check +1 is needed or not
     }
 
     memset(s_txBuf, 0, sizeof(s_txBuf));
-    memcpy(s_txBuf, &pData[startPos], size);
+    memcpy(s_txBuf, &pData[start], size);
 
     s_txBuf[EOF_POS_A] = posA;
     s_txBuf[EOF_POS_B] = posB;
 
     send(destSocket, s_txBuf, EOF_POS_B + 1, 0);
-    printf("send packet [%s]\n", s_txBuf);
+
+    // disp only first 20 characters
+    memset(dispBuf, 0, sizeof(dispBuf));
+    strncpy(dispBuf, s_txBuf, 20);
+    printf("send packet [%s...] %d\n", dispBuf, size);
 }
 
 static void sendDataBlock(int destSocket)
@@ -64,10 +70,27 @@ static void sendDataBlock(int destSocket)
         // "ABCEDF" is not data
     int loop;
 
-    for (loop = 0; loop < 100; loop++) {
-        sendOnePacket(destSocket, s_largeData, 0, SIZE_ONE_PACKET);
+    int leftSize = SIZE_LARGE_DATA;
+
+    // for (loop = 0; loop < 100; loop++) {
+    //     printf("%d :", loop);
+    //     sendOnePacket(destSocket, s_largeData, /* start= */0, SIZE_ONE_PACKET);
+    // }
+    // sendOnePacket(destSocket, s_largeData, /* start= */0, 11);
+
+    while(1) {
+        if (leftSize == 0) {
+            break;
+        }
+        if (leftSize > SIZE_ONE_PACKET) {
+            sendOnePacket(destSocket, s_largeData, /* start= */0, SIZE_ONE_PACKET, false);
+        } else {
+            sendOnePacket(destSocket, s_largeData, /* start= */0, leftSize, true);
+            break;
+        }
+        leftSize -= SIZE_ONE_PACKET;
     }
-    sendOnePacket(destSocket, s_largeData, 0, 11);
+
 }
 
 int main(void) {

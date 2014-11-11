@@ -17,6 +17,8 @@ static bool rcvDataBlock(int destSocket)
     int rcvdLen;
     int EOFpos;
     bool rcvdEOF = false;
+    char dispBuf[20 + 1];
+    int size;
 
     rcvdLen = recv(destSocket, s_rxBuf, EOF_POS_B + 1, 0);
     if (rcvdLen == -1) {
@@ -28,8 +30,16 @@ static bool rcvDataBlock(int destSocket)
     if (EOFpos > 0) {
         rcvdEOF = true;
         s_rxBuf[EOFpos] = 0x00;
+        size = EOFpos;
+    } else {
+        size = SIZE_ONE_PACKET;
     }
-    printf("rcvd packet : [%s]\n", s_rxBuf);
+
+
+    // disp only first 20 characters
+    memset(dispBuf, 0, sizeof(dispBuf));
+    strncpy(dispBuf, s_rxBuf, 20);
+    printf("rcvd packet [%s...] %d\n", dispBuf, size);
 
     return rcvdEOF;
 }
@@ -44,6 +54,7 @@ int main(int argc, char **argv) {
     char rcvBuf[200];
     int rcvdLen;
     bool rcvdEOF;
+    int cnt = 0;
 
     if (argc < 2) {
         printf("[cmd] [dest IP addr]\n");
@@ -72,16 +83,17 @@ int main(int argc, char **argv) {
         rcvdLen = recv(destSocket, rcvBuf, SIZE_RCV_BUF, 0);
         if (rcvdLen != 0) {
             printf("rx:%s\n", rcvBuf);
-//            sleep(1); // TODO: remove
             while(1) {
+                printf("%d: ", cnt++); // for debug
                 rcvdEOF = rcvDataBlock(destSocket);
+
+                usleep(100); // without this, Segmentation fault
+
                 if (rcvdEOF) {
                     break;
                 }
             }
         }
-
-//        sleep(1);
     }
     
     close(destSocket);
