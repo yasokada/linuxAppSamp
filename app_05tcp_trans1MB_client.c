@@ -9,6 +9,23 @@
 
 #define SIZE_RCV_BUF 200
 
+static unsigned char s_rxBuf[SIZE_ONE_PACKET + 10]; // 10: arbitrary but to extend the size
+
+static void rcvDataBlock(int destSocket)
+{
+    int rcvdLen;
+
+    rcvdLen = recv(destSocket, s_rxBuf, EOF_POS_B + 1, 0);
+    if (rcvdLen != -1) {
+        printf("rcvd data block %d\n", rcvdLen);
+        printf("A:%d\n", s_rxBuf[EOF_POS_A]);
+        printf("B:%d\n", s_rxBuf[EOF_POS_B]);
+        printf("%s\n", s_rxBuf);
+    } else {
+        printf("rcvd fail\n");
+    }
+}
+
 int main(int argc, char **argv) {
     int loop;
     char destIP[80];
@@ -46,12 +63,11 @@ int main(int argc, char **argv) {
         rcvdLen = recv(destSocket, rcvBuf, SIZE_RCV_BUF, 0);
         if (rcvdLen != 0) {
             printf("rx:%s\n", rcvBuf);
+//            sleep(1); // TODO: remove
+            rcvDataBlock(destSocket);
         }
 
-        // TODO: data recv
-        // if OK, exit
-
-        sleep(1);
+//        sleep(1);
     }
     
     close(destSocket);

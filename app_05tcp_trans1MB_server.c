@@ -9,28 +9,44 @@
 
 #define SIZE_RCV_BUF 200
 
+static unsigned char s_txBuf[SIZE_ONE_PACKET + 10]; // 10: arbitrary but to extend the size
+
 static void sendReqOK(int destSocket, char *rxBuf, int rcvdLen)
 {
-    char txBuf[SIZE_ONE_PACKET + 10]; // 10: arbitrary but to extend the size
-
-    memset(txBuf, 0, sizeof(txBuf));
-    strcpy(txBuf, rxBuf);
+    memset(s_txBuf, 0, sizeof(s_txBuf));
+    strcpy(s_txBuf, rxBuf);
 
     // remove <LF>
-    if (txBuf[rcvdLen - 2] == '\n') {
-        txBuf[rcvdLen - 2] = 0x00;
+    if (s_txBuf[rcvdLen - 2] == '\n') {
+        s_txBuf[rcvdLen - 2] = 0x00;
     }
 
-    strcat(txBuf, ",OK");
+    strcat(s_txBuf, ",OK");
 
-    send(destSocket, txBuf, strlen(txBuf)+1, 0);
-    printf("rx: %s", txBuf);   
+    send(destSocket, s_txBuf, strlen(s_txBuf)+1, 0);
+    printf("tx: %s\n", s_txBuf);   
 }
 
 static void sendDataBlock(int destSocket)
 {
     // TODO: 
+    // 12345678901
+    // Hello World\n12345 
+    unsigned char posA, posB;
 
+    posA = 0;
+    posB = 11;
+
+    memset(s_txBuf, 0, sizeof(s_txBuf));
+    strcpy(s_txBuf, "Hello WorldABCDEF"); 
+        // "Hellow World" is data
+        // "ABCEDF" is not data
+    s_txBuf[EOF_POS_A] = posA;
+    s_txBuf[EOF_POS_B] = posB;
+
+    send(destSocket, s_txBuf, EOF_POS_B + 1, 0);
+//    send(destSocket, s_txBuf, strlen(s_txBuf) + 1, 0);
+    printf("send block data %s\n", s_txBuf);
 }
 
 int main(void) {
@@ -71,6 +87,7 @@ int main(void) {
         }
 
         sendReqOK(destSocket, rxBuf, rcvdLen);
+        usleep(100000);
 
         sendDataBlock(destSocket);
     }
