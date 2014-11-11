@@ -7,7 +7,7 @@
 #include <string.h> // for memset()
 #include "app_05common.h"
 
-#define SIZE_RCV_BUF 200
+#define SIZE_RCV_BUF 200 // for short length texts
 
 static unsigned char s_txBuf[SIZE_ONE_PACKET + 10]; // 10: arbitrary but to extend the size
 
@@ -45,8 +45,7 @@ static void sendDataBlock(int destSocket)
     s_txBuf[EOF_POS_B] = posB;
 
     send(destSocket, s_txBuf, EOF_POS_B + 1, 0);
-//    send(destSocket, s_txBuf, strlen(s_txBuf) + 1, 0);
-    printf("send block data %s\n", s_txBuf);
+    printf("send block data [%s]\n", s_txBuf);
 }
 
 int main(void) {
