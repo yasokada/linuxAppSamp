@@ -15,7 +15,6 @@ int main(int argc, char **argv) {
     unsigned short port = 9880;
     int destSocket;
     struct sockaddr_in destAddr;
-//    char *toSendText = "test message";
     char toSendText[200];
     char rcvBuf[200];
     int rcvdLen;
@@ -38,14 +37,15 @@ int main(int argc, char **argv) {
 
     connect(destSocket, (struct sockaddr *) &destAddr, sizeof(destAddr));
 
-    for(loop=0; loop<3; loop++) {
-        sprintf(toSendText, "req\n");
-        printf("tx:%s", toSendText);
+//    for(loop=0; loop<3; loop++) {
+    for(loop=0; loop<1; loop++) {
+        sprintf(toSendText, "req");
+        printf("tx:%s\n", toSendText);
         send(destSocket, toSendText, strlen(toSendText)+1, 0);
 
         rcvdLen = recv(destSocket, rcvBuf, SIZE_RCV_BUF, 0);
         if (rcvdLen != 0) {
-            printf("rx:%s", rcvBuf);
+            printf("rx:%s\n", rcvBuf);
         }
 
         // TODO: data recv

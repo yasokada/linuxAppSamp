@@ -7,23 +7,36 @@
 #include <string.h> // for memset()
 #include "app_05common.h"
 
-#define SIZE_RCV 200
+#define SIZE_RCV_BUF 200
 
-static void sendDataBlock(int destSocket, char *rxBuf)
+static void sendReqOK(int destSocket, char *rxBuf, int rcvdLen)
 {
     char txBuf[SIZE_ONE_PACKET + 10]; // 10: arbitrary but to extend the size
 
+    memset(txBuf, 0, sizeof(txBuf));
     strcpy(txBuf, rxBuf);
-    strcat(txBuf, ",OK\n");
+
+    // remove <LF>
+    if (txBuf[rcvdLen - 2] == '\n') {
+        txBuf[rcvdLen - 2] = 0x00;
+    }
+
+    strcat(txBuf, ",OK");
 
     send(destSocket, txBuf, strlen(txBuf)+1, 0);
     printf("rx: %s", txBuf);   
 }
 
+static void sendDataBlock(int destSocket)
+{
+    // TODO: 
+
+}
+
 int main(void) {
     int ret;
     int rcvdLen;
-    char rxBuf[SIZE_RCV];
+    char rxBuf[SIZE_RCV_BUF];
     char txBuf[SIZE_ONE_PACKET + 10]; // 10: arbitrary but to extend the size
     unsigned short port = 9880;
     int srcSocket;
@@ -48,7 +61,7 @@ int main(void) {
     printf("after accept %s\n", inet_ntoa(dstAddr.sin_addr));
 
     while(1) {
-        rcvdLen = recv(destSocket, rxBuf, SIZE_RCV, 0);
+        rcvdLen = recv(destSocket, rxBuf, SIZE_RCV_BUF, 0);
         if (rcvdLen == 0 || rcvdLen == -1) {
             ret = close(destSocket);
             break;
@@ -57,18 +70,8 @@ int main(void) {
             continue;
         }
 
-        // remove <LF>
-        if (rxBuf[rcvdLen - 2] == '\n') {
-            rxBuf[rcvdLen - 2] = 0x00;
-        }
+        sendReqOK(destSocket, rxBuf, rcvdLen);
 
-        sendDataBlock(destSocket, rxBuf);
-
-        // TODO: send data
-
-        // strcat(rxBuf, ",OK\n");
-
-        // send(destSocket, rxBuf, strlen(rxBuf)+1, 0);
-
+        sendDataBlock(destSocket);
     }
 }
