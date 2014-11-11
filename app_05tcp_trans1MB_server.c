@@ -9,6 +9,8 @@
 
 #define SIZE_RCV_BUF 200 // for short length texts
 
+static unsigned char s_largeData[SIZE_LARGE_DATA];
+
 static unsigned char s_txBuf[SIZE_ONE_PACKET + 10]; // 10: arbitrary but to extend the size
 
 static void sendReqOK(int destSocket, char *rxBuf, int rcvdLen)
@@ -27,25 +29,45 @@ static void sendReqOK(int destSocket, char *rxBuf, int rcvdLen)
     printf("tx: %s\n", s_txBuf);   
 }
 
-static void sendDataBlock(int destSocket)
+static void setLargeData(void)
 {
-    // TODO: 
-    // 12345678901
-    // Hello World\n12345 
+    int idx;
+
+    for(idx=0; idx<SIZE_LARGE_DATA; idx++) {
+        s_largeData[idx] = 'C';
+    }
+}
+
+static void sendOnePacket(int destSocket, char *pData, int startPos, int size)
+{
     unsigned char posA, posB;
 
-    posA = 0;
-    posB = 11;
+    if (size < SIZE_ONE_PACKET) {
+        posA = size / 256;
+        posB = size % 256; // TODO: check +1 is needed or not
+    }
 
     memset(s_txBuf, 0, sizeof(s_txBuf));
-    strcpy(s_txBuf, "Hello WorldABCDEF"); 
-        // "Hellow World" is data
-        // "ABCEDF" is not data
+    memcpy(s_txBuf, &pData[startPos], size);
+
     s_txBuf[EOF_POS_A] = posA;
     s_txBuf[EOF_POS_B] = posB;
 
     send(destSocket, s_txBuf, EOF_POS_B + 1, 0);
-    printf("send block data [%s]\n", s_txBuf);
+    printf("send packet [%s]\n", s_txBuf);
+}
+
+static void sendDataBlock(int destSocket)
+{
+//    strcpy(s_largeData, "Hello WorldABCDEF"); 
+        // "Hellow World" is data
+        // "ABCEDF" is not data
+    int loop;
+
+    for (loop = 0; loop < 100; loop++) {
+        sendOnePacket(destSocket, s_largeData, 0, SIZE_ONE_PACKET);
+    }
+    sendOnePacket(destSocket, s_largeData, 0, 11);
 }
 
 int main(void) {
@@ -59,6 +81,8 @@ int main(void) {
     struct sockaddr_in srcAddr;
     struct sockaddr_in dstAddr;
     int dstAddrSize = sizeof(dstAddr);
+
+    setLargeData();
 
     memset(&srcAddr, 0, sizeof(srcAddr));
     srcAddr.sin_port = htons(port);

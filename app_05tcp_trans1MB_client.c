@@ -5,16 +5,18 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <string.h> // for memset()
+#include <stdbool.h>
 #include "app_05common.h"
 
 #define SIZE_RCV_BUF 200
 
 static unsigned char s_rxBuf[SIZE_ONE_PACKET + 10]; // 10: arbitrary but to extend the size
 
-static void rcvDataBlock(int destSocket)
+static bool rcvDataBlock(int destSocket)
 {
     int rcvdLen;
     int EOFpos;
+    bool rcvdEOF = false;
 
     rcvdLen = recv(destSocket, s_rxBuf, EOF_POS_B + 1, 0);
     if (rcvdLen == -1) {
@@ -22,13 +24,14 @@ static void rcvDataBlock(int destSocket)
         return; // fail
     }
 
-    printf("-- rcvd data block: length=%d\n", rcvdLen);
-//        printf("A:%d\n", s_rxBuf[EOF_POS_A]);
-//        printf("B:%d\n", s_rxBuf[EOF_POS_B]);
-    printf("w/  noise : [%s]\n", s_rxBuf);
     EOFpos = s_rxBuf[EOF_POS_A] * 256 + s_rxBuf[EOF_POS_B];
-    s_rxBuf[EOFpos] = 0x00;
-    printf("w/o noise : [%s]\n", s_rxBuf);
+    if (EOFpos > 0) {
+        rcvdEOF = true;
+        s_rxBuf[EOFpos] = 0x00;
+    }
+    printf("rcvd packet : [%s]\n", s_rxBuf);
+
+    return rcvdEOF;
 }
 
 int main(int argc, char **argv) {
@@ -40,6 +43,7 @@ int main(int argc, char **argv) {
     char toSendText[200];
     char rcvBuf[200];
     int rcvdLen;
+    bool rcvdEOF;
 
     if (argc < 2) {
         printf("[cmd] [dest IP addr]\n");
@@ -69,7 +73,12 @@ int main(int argc, char **argv) {
         if (rcvdLen != 0) {
             printf("rx:%s\n", rcvBuf);
 //            sleep(1); // TODO: remove
-            rcvDataBlock(destSocket);
+            while(1) {
+                rcvdEOF = rcvDataBlock(destSocket);
+                if (rcvdEOF) {
+                    break;
+                }
+            }
         }
 
 //        sleep(1);
