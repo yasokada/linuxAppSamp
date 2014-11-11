@@ -4,7 +4,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#include <string.h> // for memset()
+#include <string.h>
 #include <stdbool.h>
 #include "app_05common.h"
 
@@ -13,6 +13,11 @@
 static unsigned char s_largeData[SIZE_LARGE_DATA];
 
 static unsigned char s_txBuf[SIZE_ONE_PACKET + 10]; // 10: arbitrary but to extend the size
+
+/*
+ * Usage: [cmd]
+ */
+
 
 static void sendReqOK(int destSocket, char *rxBuf, int rcvdLen)
 {
@@ -35,8 +40,10 @@ static void setLargeData(void)
     int idx;
 
     for(idx=0; idx<SIZE_LARGE_DATA; idx++) {
-        s_largeData[idx] = 'C';
+        s_largeData[idx] = kDataCode;
     }
+
+//    s_largeData[10] = 'E'; // for error rcv debug
 }
 
 static void sendOnePacket(int destSocket, char *pData, int start, int size, bool sendEOF)
@@ -60,7 +67,11 @@ static void sendOnePacket(int destSocket, char *pData, int start, int size, bool
     // disp only first 20 characters
     memset(dispBuf, 0, sizeof(dispBuf));
     strncpy(dispBuf, s_txBuf, 20);
+#ifdef MODE_SILENT
+    // do nothing
+#else    
     printf("send packet [%s...] %d\n", dispBuf, size);
+#endif    
 }
 
 static void sendDataBlock(int destSocket)
@@ -71,6 +82,7 @@ static void sendDataBlock(int destSocket)
     int loop;
 
     int leftSize = SIZE_LARGE_DATA;
+    int start = 0;
 
     // for (loop = 0; loop < 100; loop++) {
     //     printf("%d :", loop);
@@ -83,11 +95,12 @@ static void sendDataBlock(int destSocket)
             break;
         }
         if (leftSize > SIZE_ONE_PACKET) {
-            sendOnePacket(destSocket, s_largeData, /* start= */0, SIZE_ONE_PACKET, false);
+            sendOnePacket(destSocket, s_largeData, start, SIZE_ONE_PACKET, false);
         } else {
-            sendOnePacket(destSocket, s_largeData, /* start= */0, leftSize, true);
+            sendOnePacket(destSocket, s_largeData, start, leftSize, true);
             break;
         }
+        start += SIZE_ONE_PACKET;
         leftSize -= SIZE_ONE_PACKET;
     }
 

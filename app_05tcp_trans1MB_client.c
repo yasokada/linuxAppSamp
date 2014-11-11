@@ -4,7 +4,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#include <string.h> // for memset()
+#include <string.h>
 #include <stdbool.h>
 #include "app_05common.h"
 
@@ -12,13 +12,20 @@
 
 static unsigned char s_rxBuf[SIZE_ONE_PACKET + 10]; // 10: arbitrary but to extend the size
 
-static bool rcvDataBlock(int destSocket)
+/*
+ * Usage: [cmd] [serverIP]
+ * e.g. ./cmd 127.0.0.1
+ */
+
+
+static bool rcvDataBlock(int destSocket, bool *prcvOK)
 {
     int rcvdLen;
     int EOFpos;
     bool rcvdEOF = false;
     char dispBuf[20 + 1];
     int size;
+    int loop;
 
     rcvdLen = recv(destSocket, s_rxBuf, EOF_POS_B + 1, 0);
     if (rcvdLen == -1) {
@@ -33,15 +40,35 @@ static bool rcvDataBlock(int destSocket)
         size = EOFpos;
     } else {
         size = SIZE_ONE_PACKET;
+    }    
+
+    *prcvOK = true;
+    for (loop = 0; loop < size; loop++) {
+        if (s_rxBuf[loop] != kDataCode) {
+            *prcvOK = false;
+        }
     }
 
-
+#ifdef MODE_SILENT
+    // do nothing
+#else
     // disp only first 20 characters
     memset(dispBuf, 0, sizeof(dispBuf));
     strncpy(dispBuf, s_rxBuf, 20);
     printf("rcvd packet [%s...] %d\n", dispBuf, size);
+#endif
+
 
     return rcvdEOF;
+}
+
+static void dispCounter(int cnt)
+{
+#ifdef MODE_SILENT
+    // do nothing
+#else
+    printf("%d: ", cnt++); // for debug
+#endif                
 }
 
 int main(int argc, char **argv) {
@@ -54,6 +81,7 @@ int main(int argc, char **argv) {
     char rcvBuf[200];
     int rcvdLen;
     bool rcvdEOF;
+    bool rcvOK;
     int cnt = 0;
 
     if (argc < 2) {
@@ -74,7 +102,6 @@ int main(int argc, char **argv) {
 
     connect(destSocket, (struct sockaddr *) &destAddr, sizeof(destAddr));
 
-//    for(loop=0; loop<3; loop++) {
     for(loop=0; loop<1; loop++) {
         sprintf(toSendText, "req");
         printf("tx:%s\n", toSendText);
@@ -84,10 +111,13 @@ int main(int argc, char **argv) {
         if (rcvdLen != 0) {
             printf("rx:%s\n", rcvBuf);
             while(1) {
-                printf("%d: ", cnt++); // for debug
-                rcvdEOF = rcvDataBlock(destSocket);
+                dispCounter(cnt++);
+                rcvdEOF = rcvDataBlock(destSocket, &rcvOK);
+                if (rcvOK == false) {
+                    printf("rcv failed\n");
+                }
 
-                usleep(100); // without this, Segmentation fault
+                usleep(10); // without this, Segmentation fault
 
                 if (rcvdEOF) {
                     break;
