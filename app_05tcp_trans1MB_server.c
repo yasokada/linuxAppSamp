@@ -54,6 +54,9 @@ static void sendOnePacket(int destSocket, char *pData, int start, int size, bool
     if (size < SIZE_ONE_PACKET || sendEOF) {
         posA = size / 256;
         posB = size % 256; // TODO: check +1 is needed or not
+    } else {
+        posA = 0;
+        posB = 0;
     }
 
     memset(s_txBuf, 0, sizeof(s_txBuf));
