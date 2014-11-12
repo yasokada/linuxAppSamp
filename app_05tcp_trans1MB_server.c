@@ -73,7 +73,7 @@ static void sendOnePacket(int destSocket, char *pData, int start, int size, bool
 #ifdef MODE_SILENT
     // do nothing
 #else    
-    printf("send packet [%s...] %d\n", dispBuf, size);
+    printf("send packet [%s...] %d, (%d, %d)\n", dispBuf, size, posA, posB);
 #endif    
 }
 
@@ -121,6 +121,8 @@ int main(void) {
     struct sockaddr_in dstAddr;
     int dstAddrSize = sizeof(dstAddr);
 
+    printf("packet size=%d\n", SIZE_ONE_PACKET);
+
     setLargeData();
 
     memset(&srcAddr, 0, sizeof(srcAddr));
@@ -153,4 +155,7 @@ int main(void) {
 
         sendDataBlock(destSocket);
     }
+
+    shutdown(srcSocket, SHUT_WR);
+
 }
