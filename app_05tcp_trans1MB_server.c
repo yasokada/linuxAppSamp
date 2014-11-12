@@ -65,6 +65,14 @@ static void sendOnePacket(int destSocket, char *pData, int start, int size, bool
     s_txBuf[EOF_POS_A] = posA;
     s_txBuf[EOF_POS_B] = posB;
 
+    // TODO: remove // for debug
+    s_txBuf[0] = '0';
+    s_txBuf[1] = '1';
+    s_txBuf[2] = '2';
+    s_txBuf[EOF_POS_A - 1] = 'E';
+    s_txBuf[EOF_POS_A - 2] = 'E';
+    s_txBuf[EOF_POS_A - 3] = 'E';
+
     send(destSocket, s_txBuf, EOF_POS_B + 1, 0);
 
     // disp only first 20 characters
@@ -151,11 +159,16 @@ int main(void) {
         }
 
         sendReqOK(destSocket, rxBuf, rcvdLen);
-        usleep(100000);
+
+//        usleep(100000);
 
         sendDataBlock(destSocket);
     }
 
-    shutdown(srcSocket, SHUT_WR);
+    sleep(1);
 
+    shutdown(destSocket, SHUT_WR);
+    close(srcSocket); // TODO: test
+
+    sleep(1);
 }

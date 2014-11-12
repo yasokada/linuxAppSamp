@@ -2,7 +2,7 @@
 #define APP_05COMMON_H
 
 #define SIZE_ONE_PACKET (2048) // size of data sent in a packet
-//#define SIZE_ONE_PACKET (80) // for debug
+//#define SIZE_ONE_PACKET (512) // for debug
 
 #define EOF_POS_A (SIZE_ONE_PACKET + 1)
 #define EOF_POS_B (EOF_POS_A + 1)

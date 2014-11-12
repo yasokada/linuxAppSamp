@@ -23,18 +23,30 @@ static bool rcvDataBlock(int destSocket, bool *prcvOK)
     int rcvdLen;
     int EOFpos;
     bool rcvdEOF = false;
-    char dispBuf[20 + 1];
+    char dispBufStart[10 + 1];
+    char dispBufEnd[10 + 1];
     int size;
     int loop;
 
+    memset(s_rxBuf, 0, sizeof(s_rxBuf));
     rcvdLen = recv(destSocket, s_rxBuf, EOF_POS_B + 1, 0);
     if (rcvdLen == -1) {
         printf("rcvd fail\n");
         return; // fail
     }
 
+    if (s_rxBuf[EOF_POS_A] == kDataCode || 
+        s_rxBuf[EOF_POS_B] == kDataCode) {
+        printf("rcvd Datacode at EOF_POS_A or EOF_POS_B %d\n", rcvdLen);
+        printf("%c%c at 0,1\n", s_rxBuf[0], s_rxBuf[1]);
+        *prcvOK = true; // HACKME: to avoid error
+        return rcvdEOF; // HACKME: to avoid error
+    }
+
     EOFpos = s_rxBuf[EOF_POS_A] * 256 + s_rxBuf[EOF_POS_B];
+
     if (EOFpos > 0) {
+        printf("%d %d %d\n", rcvdLen, s_rxBuf[EOF_POS_A], s_rxBuf[EOF_POS_B]);
         rcvdEOF = true;
         s_rxBuf[EOFpos] = 0x00;
         size = EOFpos;
@@ -43,7 +55,8 @@ static bool rcvDataBlock(int destSocket, bool *prcvOK)
     }    
 
     *prcvOK = true;
-    for (loop = 0; loop < size; loop++) {
+//    for (loop = 0; loop < size; loop++) {
+    for (loop = 5; loop < size - 5; loop++) { // firsts and lasts are not kDataCode
         if (s_rxBuf[loop] != kDataCode) {
             *prcvOK = false;
         }
@@ -53,9 +66,12 @@ static bool rcvDataBlock(int destSocket, bool *prcvOK)
     // do nothing
 #else
     // disp only first 20 characters
-    memset(dispBuf, 0, sizeof(dispBuf));
-    strncpy(dispBuf, s_rxBuf, 20);
-    printf("rcvd packet [%s...] %d\n", dispBuf, size);
+    memset(dispBufStart, 0, sizeof(dispBufStart));
+    memset(dispBufEnd, 0, sizeof(dispBufEnd));
+    strncpy(dispBufStart, s_rxBuf, 10);
+    strncpy(dispBufEnd, &s_rxBuf[EOF_POS_A - 10], 10);
+    printf("rcvd packet [%s...%s] %d\n", dispBufStart, dispBufEnd, size);
+//    printf("rcvd packet [%s] %d\n", s_rxBuf, size);
 #endif
 
 
@@ -108,8 +124,10 @@ int main(int argc, char **argv) {
         send(destSocket, toSendText, strlen(toSendText)+1, 0);
 
         rcvdLen = recv(destSocket, rcvBuf, SIZE_RCV_BUF, 0);
+
         if (rcvdLen != 0) {
             printf("rx:%s\n", rcvBuf);
+//            usleep(100000);
             while(1) {
                 dispCounter(cnt++);
                 rcvdEOF = rcvDataBlock(destSocket, &rcvOK);
@@ -117,7 +135,7 @@ int main(int argc, char **argv) {
                     printf("rcv failed\n");
                 }
 
-                usleep(10); // without this, Segmentation fault
+                usleep(100); // without this, Segmentation fault
 
                 if (rcvdEOF) {
                     break;
@@ -127,5 +145,6 @@ int main(int argc, char **argv) {
     }
     
     close(destSocket);
+//    shutdown(destSocket, SHUT_WR);
 }
 
