@@ -6,13 +6,21 @@
 #include <netdb.h>
 #include <string.h> // for memset()
 
+#define SIZE_TXBUF 2048
+
+static char txBuf[SIZE_TXBUF + 1];
+
 int main(int argc, char **argv) {
     int loop;
     char destIP[80];
     unsigned short port = 9880;
     int destSocket;
     struct sockaddr_in destAddr;
-    char *toSendText = "test message";
+    int idx;
+
+    for(idx=0; idx<SIZE_TXBUF; idx++) {
+        txBuf[idx] = 'C';
+    }
 
     if (argc < 2) {
         printf("[cmd] [dest IP addr]\n");
@@ -33,10 +41,10 @@ int main(int argc, char **argv) {
     connect(destSocket, (struct sockaddr *) &destAddr, sizeof(destAddr));
 
     for(loop=0; loop<3; loop++) {
-        printf("tx:%s\n", toSendText);
-        send(destSocket, toSendText, strlen(toSendText)+1, 0);
-        usleep(100000);
-//        sleep(1);
+//        printf("tx:%s\n", txBuf);
+        send(destSocket, txBuf, strlen(txBuf)+1, 0);
+//        usleep(100000);
+        usleep(1000);
     }
     
     close(destSocket);

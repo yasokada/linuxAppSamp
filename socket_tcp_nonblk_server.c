@@ -7,12 +7,13 @@
 #include <string.h> // for memset()
 #include <sys/ioctl.h> // for FIONBIO
 
-#define SIZE_BUF 200
+#define MAX_SIZE 8000
+#define SIZE_RCV 2048   
+static char szBuf[MAX_SIZE];
 
 int main(void) {
     int ret;
     int rcvdLen;
-    char szBuf[SIZE_BUF];
     unsigned short port = 9880;
     int srcSocket;
     int destSocket;
@@ -36,19 +37,25 @@ int main(void) {
     destSocket = accept(srcSocket, (struct sockaddr *) &dstAddr, &dstAddrSize);
     printf("after accept %s\n", inet_ntoa(dstAddr.sin_addr));
 
-    ioctl(destSocket, FIONBIO, &val);
+    ioctl(destSocket, FIONBIO, &val); // for nonblocking comm
+
+    usleep(100000); // test
 
     while(1) {
-        rcvdLen = recv(destSocket, szBuf, SIZE_BUF, 0);
-        if (rcvdLen == -1) {
-            printf(".");
+        memset(szBuf, 0, sizeof(szBuf));
+
+//        usleep(100000);
+        rcvdLen = recv(destSocket, szBuf, SIZE_RCV+1, 0);
+        if (rcvdLen == -1) { // waiting
             usleep(100000);
             continue;
         }
-        if (rcvdLen == 0 || rcvdLen == -1) {
+//        if (rcvdLen == 0 || rcvdLen == -1) {
+        if (rcvdLen == 0) { // shutdown by peer
             ret = close(destSocket);
             break;
         }
-        printf("rx: %s\n", szBuf);
+//        printf("rx: [%d] %s\n", strlen(szBuf), szBuf);
+        printf("rx: %d \n", strlen(szBuf));
     }
 }
