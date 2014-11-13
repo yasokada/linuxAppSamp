@@ -130,16 +130,19 @@ int main(int argc, char **argv) {
         if (rcvdLen != 0) {
             printf("rx:%s\n", rcvBuf);
 
-            usleep(10000); // wait 1msec for server to start sending
-
             while(1) {
+
+#if SIZE_ONE_PACKET == 2048
+                usleep(100);
+#else // up to 8192
+                usleep(1200);
+#endif
+
                 dispCounter(cnt++);
                 rcvdEOF = rcvDataBlock(destSocket, &rcvOK);
                 if (rcvOK == false) {
                     printf("rcv failed\n");
                 }
-
-                usleep(1000); // OK for 8192 sized packet
 
                 if (rcvdEOF) {
                     break;
@@ -147,6 +150,8 @@ int main(int argc, char **argv) {
             }
         }
     }
+
+    printf("cnt=%d\n", cnt);
     
     close(destSocket);
 //    shutdown(destSocket, SHUT_WR);
