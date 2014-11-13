@@ -7,8 +7,8 @@
 #include <string.h> // for memset()
 #include <sys/ioctl.h> // for FIONBIO
 
-#define MAX_SIZE 8000
-#define SIZE_RCV 2048   
+#define MAX_SIZE 50000
+#define SIZE_RCV 32768
 static char szBuf[MAX_SIZE];
 
 int main(void) {
@@ -39,15 +39,13 @@ int main(void) {
 
     ioctl(destSocket, FIONBIO, &val); // for nonblocking comm
 
-    usleep(100000); // test
-
     while(1) {
         memset(szBuf, 0, sizeof(szBuf));
 
-//        usleep(100000);
         rcvdLen = recv(destSocket, szBuf, SIZE_RCV+1, 0);
         if (rcvdLen == -1) { // waiting
-            usleep(100000);
+            printf(".");
+            usleep(100);
             continue;
         }
 //        if (rcvdLen == 0 || rcvdLen == -1) {
@@ -56,6 +54,6 @@ int main(void) {
             break;
         }
 //        printf("rx: [%d] %s\n", strlen(szBuf), szBuf);
-        printf("rx: %d \n", strlen(szBuf));
+//        printf("rx: %d \n", strlen(szBuf));
     }
 }

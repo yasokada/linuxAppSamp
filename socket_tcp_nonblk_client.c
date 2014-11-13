@@ -6,7 +6,8 @@
 #include <netdb.h>
 #include <string.h> // for memset()
 
-#define SIZE_TXBUF 2048
+#define SIZE_TXBUF 32768
+#define LOOP_COUNT (1024000 / SIZE_TXBUF)
 
 static char txBuf[SIZE_TXBUF + 1];
 
@@ -40,11 +41,10 @@ int main(int argc, char **argv) {
 
     connect(destSocket, (struct sockaddr *) &destAddr, sizeof(destAddr));
 
-    for(loop=0; loop<3; loop++) {
+    for(loop=0; loop<LOOP_COUNT; loop++) {
 //        printf("tx:%s\n", txBuf);
         send(destSocket, txBuf, strlen(txBuf)+1, 0);
-//        usleep(100000);
-        usleep(1000);
+        usleep(100);
     }
     
     close(destSocket);
