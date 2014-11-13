@@ -6,6 +6,7 @@
 #include <netdb.h>
 #include <string.h>
 #include <stdbool.h>
+#include <netinet/tcp.h> // for TCP_NODELAY
 #include "app_05common.h"
 
 #define SIZE_RCV_BUF 200 // for short length texts
@@ -117,6 +118,17 @@ static void sendDataBlock(int destSocket)
 
 }
 
+static void clearTCPStream(int destSocket)
+{
+    int flag;
+
+    flag = 1;
+    setsockopt(destSocket, IPPROTO_TCP, TCP_NODELAY, (char *)&flag, sizeof(int));
+    usleep(100);
+    flag = 0;
+    setsockopt(destSocket, IPPROTO_TCP, TCP_NODELAY, (char *)&flag, sizeof(int));
+}
+
 int main(void) {
     int ret;
     int rcvdLen;
@@ -160,7 +172,8 @@ int main(void) {
 
         sendReqOK(destSocket, rxBuf, rcvdLen);
 
-//        usleep(100000);
+        usleep(100); // without this communication fails
+        clearTCPStream(destSocket); // TODO: test
 
         sendDataBlock(destSocket);
     }
@@ -170,5 +183,4 @@ int main(void) {
     shutdown(destSocket, SHUT_WR);
     close(srcSocket); // TODO: test
 
-    sleep(1);
 }

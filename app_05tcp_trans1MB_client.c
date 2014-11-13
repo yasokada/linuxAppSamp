@@ -106,6 +106,8 @@ int main(int argc, char **argv) {
         return;
     }
 
+    printf("packet size=%d\n", SIZE_ONE_PACKET);
+
     strcpy(destIP, argv[1]);
     printf("to %s\n", destIP);
 
@@ -127,7 +129,9 @@ int main(int argc, char **argv) {
 
         if (rcvdLen != 0) {
             printf("rx:%s\n", rcvBuf);
-//            usleep(100000);
+
+            usleep(10000); // wait 1msec for server to start sending
+
             while(1) {
                 dispCounter(cnt++);
                 rcvdEOF = rcvDataBlock(destSocket, &rcvOK);
@@ -135,7 +139,7 @@ int main(int argc, char **argv) {
                     printf("rcv failed\n");
                 }
 
-                usleep(100); // without this, Segmentation fault
+                usleep(1000); // OK for 8192 sized packet
 
                 if (rcvdEOF) {
                     break;
