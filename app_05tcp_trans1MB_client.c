@@ -133,7 +133,7 @@ int main(int argc, char **argv) {
             while(1) {
 
 #if SIZE_ONE_PACKET == 2048
-                usleep(100);
+                usleep(500);
 #else // up to 8192
                 usleep(1200);
 #endif
