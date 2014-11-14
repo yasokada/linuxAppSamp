@@ -43,5 +43,7 @@ int main(int argc, char *argv[]) {
 	pthread_mutex_unlock(&lock);
 	printf("main > unlocked\n");
 	pthread_join(thread, NULL);
+
+	pthread_mutex_destroy(&lock);
 	return 0;
 }
