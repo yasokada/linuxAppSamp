@@ -32,6 +32,8 @@ int main(void)
 	sleep(20);
 }
 
+// 99: highest priority for SCHED_FIFO
+// 1: lowest priority for SCHED_FIFO
 static const s_kPriHigh = 20;
 static const s_kPriLow  = 10; // 10, 20 : arbitrary but for High > Low
 
