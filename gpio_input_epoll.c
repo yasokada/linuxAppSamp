@@ -130,8 +130,8 @@ static int gpio_get_value(int gpio)
 
 int main(void) {
 	int ret;
-	int epfd;
-	int fd;
+	int epfd; // for epoll
+	int iofd; // for gpio
 	struct epoll_event ev1;
 	struct epoll_event events;
 	int count=0;
@@ -152,17 +152,17 @@ int main(void) {
 
 	// example of epoll()
 	epfd = epoll_create(1); /*** epoll ***/
-	fd = open("/sys/class/gpio/gpio51/value", O_RDONLY);
-	if (fd == 0) {
+	iofd = open("/sys/class/gpio/gpio51/value", O_RDONLY);
+	if (iofd == 0) {
 		printf("open fd fail\n");
 		close(epfd);
 		return;
 	}
-	read(fd, &code, 1); // need this to make epoll() work
+	read(iofd, &code, 1); // need this to make epoll() work
 
 	ev1.events = EPOLLPRI | EPOLLET | EPOLLIN;
-	ev1.data.fd = fd;
-	ret = epoll_ctl(epfd, EPOLL_CTL_ADD, fd, &ev1); /*** epoll ***/
+	ev1.data.fd = iofd;
+	ret = epoll_ctl(epfd, EPOLL_CTL_ADD, iofd, &ev1); /*** epoll ***/
 
 	while(1) {
 		ret = epoll_wait(epfd, &events, 1, -1); /*** epoll ***/
@@ -170,8 +170,8 @@ int main(void) {
 			continue;
 		}
 		if (ret > 0) {
-			lseek(fd, 0, SEEK_SET);
-			read(fd, &code, 1);
+			lseek(iofd, 0, SEEK_SET);
+			read(iofd, &code, 1);
 			if (code == '1') {
 				printf("pushed\n");
 				count++;
@@ -185,5 +185,5 @@ int main(void) {
 	}
 
 	close(epfd);
-	close(fd);
+	close(iofd);
 }
