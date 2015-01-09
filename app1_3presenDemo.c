@@ -1,1 +1,0 @@
-/home/administrator/0WORK/km_linuxapp/app1_3presenDemo.c
