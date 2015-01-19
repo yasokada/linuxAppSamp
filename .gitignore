@@ -5,3 +5,17 @@ WORK_SCU/
 a.out
 granularity.c
 myapp.c
+func_*.c 
+func_gpio.c
+func_gpio.h
+func_ipaddrs.c
+func_ipaddrs.h
+func_term.c
+func_term.h
+copyfile.c
+func_file.c
+func_file.h
+out.mov
+tcpClient
+tcpServer
+uImage
